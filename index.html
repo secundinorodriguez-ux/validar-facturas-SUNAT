@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validador de Facturas SUNAT</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    h1 { color: #333; }
+    .form-group { margin-bottom: 20px; }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #0056b3; }
+    #resultado { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1>Validador de Facturas SUNAT</h1>
+  <p>Selecciona tu carpeta <strong>pdf facturas</strong> para procesar los documentos:</p>
+
+  <form id="form-factura">
+    <div class="form-group">
+      <input type="file" id="pdfFiles" accept=".pdf" multiple webkitdirectory required />
+    </div>
+    <button type="submit">Procesar Facturas</button>
+  </form>
+
+  <div id="resultado"></div>
+
+  <script>
+    document.getElementById('form-factura').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('pdfFiles');
+      const resultadoDiv = document.getElementById('resultado');
+      const files = Array.from(fileInput.files).filter(file => file.name.endsWith('.pdf'));
+
+      if (files.length === 0) {
+        alert('No se encontraron archivos PDF en la carpeta seleccionada.');
+        return;
+      }
+
+      resultadoDiv.innerHTML = `Procesando 0 de ${files.length} facturas...`;
+
+      // URL de prueba de tu Webhook en n8n
+      const webhookUrl = 'https://asistentetributariosecun.app.n8n.cloud/webhook-test/validar-factura-sunat';
+
+      let procesados = 0;
+
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('data', file);
+
+        try {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            body: formData
+          });
+
+          procesados++;
+          resultadoDiv.innerHTML = `Procesadas ${procesados} de ${files.length} facturas... (${file.name})`;
+        } catch (error) {
+          console.error(`Error procesando ${file.name}:`, error);
+        }
+      }
+
+      resultadoDiv.innerHTML = `<strong>¡Listo!</strong> Se enviaron las ${files.length} facturas a Google Sheets.`;
+    });
+  </script>
+
+</body>
+</html>
