@@ -65,16 +65,21 @@
         const formData = new FormData();
         formData.append('data', file);
 
-        try {
-          await fetch(webhookUrl, {
+       try {
+          const response = await fetch(webhookUrl, {
             method: 'POST',
             body: formData
           });
+
+          if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+          }
 
           procesados++;
           resultadoDiv.innerHTML = `Procesadas ${procesados} de ${files.length} facturas... (${file.name})`;
         } catch (error) {
           console.error(`Error procesando ${file.name}:`, error);
+          resultadoDiv.innerHTML = `<span style="color:red">Error en ${file.name}: ${error.message}</span>`;
         }
       }
 
